@@ -3,71 +3,79 @@ const router = express.Router();
 const Address = require('../models/Address');
 const { parseAddress, parseAddressesBatch } = require('../services/claudeParser');
 
-router.post('/parse', async function (req, res) {
+// 1. Parse a single address
+router.post('/parse', async (req, res) => {
   try {
-    var rawAddress = req.body.raw_address;
-    if (!rawAddress || !rawAddress.trim()) {
+    const { raw_address } = req.body;
+    if (!raw_address || !raw_address.trim()) {
       return res.status(400).json({ error: 'raw_address is required' });
     }
-    var parsed = await parseAddress(rawAddress.trim());
-    var address = await Address.create(parsed);
-    res.status(201).json({ success: true, data: address });
+
+    const parsedData = await parseAddress(raw_address.trim());
+    const savedAddress = await Address.create(parsedData);
+    res.status(201).json({ success: true, data: savedAddress });
   } catch (err) {
     res.status(500).json({ error: 'Failed to parse address', details: err.message });
   }
 });
 
-router.post('/parse-bulk', async function (req, res) {
+// 2. Parse multiple addresses in bulk
+router.post('/parse-bulk', async (req, res) => {
   try {
-    var addresses = req.body.addresses;
+    const { addresses } = req.body;
     if (!addresses || !Array.isArray(addresses) || addresses.length === 0) {
       return res.status(400).json({ error: 'addresses array is required' });
     }
-    var parsedResults = await parseAddressesBatch(addresses);
-    var saved = await Address.insertMany(parsedResults);
-    res.status(201).json({ success: true, count: saved.length, data: saved });
+
+    const parsedResults = await parseAddressesBatch(addresses);
+    const savedAddresses = await Address.insertMany(parsedResults);
+    res.status(201).json({ success: true, count: savedAddresses.length, data: savedAddresses });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to parse addresses', details: err.message });
+    res.status(500).json({ error: 'Failed to parse batch addresses', details: err.message });
   }
 });
 
-router.get('/stats', async function (req, res) {
+// 3. Get dashboard statistics
+router.get('/stats', async (req, res) => {
   try {
-    var total = await Address.countDocuments();
-    var parsed = await Address.countDocuments({ status: 'parsed' });
-    var unparseable = await Address.countDocuments({ status: 'unparseable' });
-    var needsReview = await Address.countDocuments({ status: 'needs_review' });
-    var recent = await Address.find().sort({ createdAt: -1 }).limit(5);
+    const total = await Address.countDocuments();
+    const parsed = await Address.countDocuments({ status: 'parsed' });
+    const unparseable = await Address.countDocuments({ status: 'unparseable' });
+    const needsReview = await Address.countDocuments({ status: 'needs_review' });
+    const recent = await Address.find().sort({ createdAt: -1 }).limit(5);
 
     res.json({
       success: true,
       data: { total, parsed, unparseable, needsReview, recent }
     });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get stats', details: err.message });
+    res.status(500).json({ error: 'Failed to fetch statistics', details: err.message });
   }
 });
 
-router.get('/', async function (req, res) {
+// 4. Get all addresses (with search, filter, and pagination)
+router.get('/', async (req, res) => {
   try {
-    var status = req.query.status;
-    var search = req.query.search;
-    var page = parseInt(req.query.page) || 1;
-    var limit = parseInt(req.query.limit) || 20;
+    const { status, search } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
 
-    var filter = {};
-    if (status) filter.status = status;
+    const query = {};
+    if (status) query.status = status;
     if (search) {
-      filter.$or = [
+      query.$or = [
         { raw_address: { $regex: search, $options: 'i' } },
         { city: { $regex: search, $options: 'i' } },
         { locality: { $regex: search, $options: 'i' } }
       ];
     }
 
-    var skip = (page - 1) * limit;
-    var total = await Address.countDocuments(filter);
-    var addresses = await Address.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const skip = (page - 1) * limit;
+    const total = await Address.countDocuments(query);
+    const addresses = await Address.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       success: true,
@@ -75,42 +83,44 @@ router.get('/', async function (req, res) {
       pagination: { total, page, limit, pages: Math.ceil(total / limit) }
     });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get addresses', details: err.message });
+    res.status(500).json({ error: 'Failed to fetch addresses', details: err.message });
   }
 });
 
-router.get('/:id', async function (req, res) {
+// 5. Get address by ID
+router.get('/:id', async (req, res) => {
   try {
-    var address = await Address.findById(req.params.id);
-    if (!address) return res.status(404).json({ error: 'Not found' });
+    const address = await Address.findById(req.params.id);
+    if (!address) return res.status(404).json({ error: 'Address not found' });
     res.json({ success: true, data: address });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to get address', details: err.message });
+    res.status(500).json({ error: 'Failed to fetch address', details: err.message });
   }
 });
 
-router.put('/:id', async function (req, res) {
+// 6. Update address by ID
+router.put('/:id', async (req, res) => {
   try {
-    var fields = ['house', 'street', 'locality', 'city', 'state', 'pincode', 'country', 'confidence', 'status', 'notes'];
-    var updates = {};
-    fields.forEach(function (f) {
-      if (req.body[f] !== undefined) updates[f] = req.body[f];
-    });
-    var address = await Address.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
-    if (!address) return res.status(404).json({ error: 'Not found' });
-    res.json({ success: true, data: address });
+    const updatedAddress = await Address.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedAddress) return res.status(404).json({ error: 'Address not found' });
+    res.json({ success: true, data: updatedAddress });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update', details: err.message });
+    res.status(500).json({ error: 'Failed to update address', details: err.message });
   }
 });
 
-router.delete('/:id', async function (req, res) {
+// 7. Delete address by ID
+router.delete('/:id', async (req, res) => {
   try {
-    var address = await Address.findByIdAndDelete(req.params.id);
-    if (!address) return res.status(404).json({ error: 'Not found' });
-    res.json({ success: true, message: 'Deleted' });
+    const deletedAddress = await Address.findByIdAndDelete(req.params.id);
+    if (!deletedAddress) return res.status(404).json({ error: 'Address not found' });
+    res.json({ success: true, message: 'Address deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete', details: err.message });
+    res.status(500).json({ error: 'Failed to delete address', details: err.message });
   }
 });
 

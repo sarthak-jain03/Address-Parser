@@ -16,7 +16,7 @@ Rules:
 Return ONLY a valid JSON object with keys: house, street, locality, city, state, pincode, country, confidence, status, notes.`;
 
 function formatParsed(rawAddress, parsed) {
-  var conf = parsed.confidence;
+  let conf = parsed.confidence;
   if (typeof conf === 'number') {
     conf = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'medium' : 'low';
   }
@@ -48,7 +48,7 @@ function errorParsed(rawAddress, message) {
     country: 'India',
     confidence: 'low',
     status: 'unparseable',
-    notes: 'Parse error: ' + message
+    notes: `Parse error: ${message}`
   };
 }
 
@@ -57,7 +57,7 @@ async function fetchWithRetry(url, options, maxRetries = 3, initialDelayMs = 150
     const res = await fetch(url, options);
     if (res.status === 429 && attempt < maxRetries - 1) {
       const waitTime = initialDelayMs * Math.pow(2, attempt);
-      console.warn(`Rate limited by Fireworks AI (429). Retrying in ${waitTime}ms... (Attempt ${attempt + 1}/${maxRetries})`);
+      console.warn(`Rate limited by AI API (429). Retrying in ${waitTime}ms... (Attempt ${attempt + 1}/${maxRetries})`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
       continue;
     }
@@ -76,7 +76,7 @@ async function parseAddress(rawAddress) {
     const res = await fetchWithRetry('https://api.fireworks.ai/inference/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + apiKey,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -84,14 +84,14 @@ async function parseAddress(rawAddress) {
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: 'Parse this address: "' + rawAddress + '"' }
+          { role: 'user', content: `Parse this address: "${rawAddress}"` }
         ]
       })
     });
 
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.error?.message || 'Fireworks API error');
+      throw new Error(data.error?.message || 'AI API error');
     }
 
     const content = data.choices[0].message.content;
@@ -103,14 +103,14 @@ async function parseAddress(rawAddress) {
 }
 
 async function parseAddressesBatch(rawAddresses) {
-  var results = [];
-  for (var i = 0; i < rawAddresses.length; i++) {
-    var addr = rawAddresses[i].trim();
+  const results = [];
+  for (let i = 0; i < rawAddresses.length; i++) {
+    const addr = rawAddresses[i].trim();
     if (addr) {
-      var result = await parseAddress(addr);
+      const result = await parseAddress(addr);
       results.push(result);
       if (i < rawAddresses.length - 1) {
-        // Add delay between batch requests to respect rate limits
+        // Add 800ms delay between requests to avoid rate limits
         await new Promise(resolve => setTimeout(resolve, 800));
       }
     }

@@ -7,19 +7,24 @@ const addressRoutes = require('./routes/addresses');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Middlewares
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json());
+
+// API Routes
 app.use('/api/addresses', addressRoutes);
 
-app.get('/api/health', function (req, res) {
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-async function start() {
+// Start Database & Server
+async function startServer() {
   await connectDB();
-  app.listen(PORT, function () {
-    console.log('Server running on http://localhost:' + PORT);
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
-start();
+startServer();
