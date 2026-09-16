@@ -2,6 +2,8 @@
 
 A quick-commerce address parsing system designed to parse unstructured Indian delivery addresses into standardized, validated JSON records, flag edge cases for dark store routing, and store records in MongoDB.
 
+## Live Link: https://address-parser-sooty.vercel.app/
+
 ## Tech Stack
 
 - **Frontend**: React + Vite + Tailwind CSS
