@@ -28,13 +28,6 @@ Collection: `addresses`
 }
 ```
 
-### Database Indexes
-- `{ city: 1, status: 1 }` — Enables quick filtering for regional operational hubs.
-- `{ createdAt: -1 }` — Optimizes dashboard feed and recent list rendering.
-- `{ raw_address: "text" }` — Full-text index for instant search.
-
----
-
 ## 3. API Endpoint Architecture
 
 | Method | Endpoint | Description | Request Body / Query Params |
