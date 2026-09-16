@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const Address = require('../models/Address');
 const { parseAddress, parseAddressesBatch } = require('../services/claudeParser');
 
@@ -85,6 +86,9 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
     const address = await Address.findById(req.params.id);
     if (!address) return res.status(404).json({ error: 'Address not found' });
     res.json({ success: true, data: address });
@@ -95,6 +99,9 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
     const updatedAddress = await Address.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -109,6 +116,9 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid ID format' });
+    }
     const deletedAddress = await Address.findByIdAndDelete(req.params.id);
     if (!deletedAddress) return res.status(404).json({ error: 'Address not found' });
     res.json({ success: true, message: 'Address deleted successfully' });
