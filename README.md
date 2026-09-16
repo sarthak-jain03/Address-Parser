@@ -1,6 +1,6 @@
-# UrbanDash Customer Address Parsing System
+# Address Parsing System
 
-A quick-commerce address parsing system for **UrbanDash Technologies**, designed to parse unstructured Indian delivery addresses into standardized, validated JSON records, flag edge cases for dark store routing, and store records in MongoDB Atlas.
+A quick-commerce address parsing system designed to parse unstructured Indian delivery addresses into standardized, validated JSON records, flag edge cases for dark store routing, and store records in MongoDB.
 
 ## Tech Stack
 
@@ -21,13 +21,10 @@ A quick-commerce address parsing system for **UrbanDash Technologies**, designed
 
 ```bash
 cd backend
-cp .env.example .env
-# Ensure FIREWORKS_API_KEY and MONGODB_URI are set in .env
 npm install
 npm run dev
 ```
 
-The backend server will run on `http://localhost:3001`.
 
 ### 2. Frontend Setup
 
@@ -37,9 +34,4 @@ npm install
 npm run dev
 ```
 
-The frontend application will run on `http://localhost:5173`.
 
-## Documentation & Submission
-
-- **[DESIGN_DOC.md](./DESIGN_DOC.md)**: Architecture design document, DB schema, API specs, prompt strategy, and Indian address edge cases.
-- **[SUBMISSION.md](./SUBMISSION.md)**: Submission details, 4-6 line executive summary, and complete engineered prompt templates.
