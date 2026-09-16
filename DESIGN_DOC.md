@@ -1,12 +1,7 @@
-# UrbanDash Address Parser — System Design Document
+# Address Parsing System
 
 ## 1. Problem Context & Business Framing
-UrbanDash Technologies operates a 10–30 minute quick-commerce delivery network across Indian metropolitan areas. In high-density urban fulfillment:
-- **Rider Delay**: Ambiguous or unstructured addresses cost delivery riders 3–7 minutes per order.
-- **Dark Store Misrouting**: Incorrect locality or postal code mapping leads to order assignment to the wrong dark store, breaching SLAs.
-- **Indian Address Complexities**: Unstructured text contains landmark-heavy directions, Hindi transliteration ("Gali No. 4, Makan No. 12"), Plus Codes, delivery notes ("Leave with guard"), and city shorthand ("BLR", "GZB").
-
-Our system parses messy raw address strings into validated structural components (`house`, `street`, `locality`, `city`, `state`, `pincode`), assigns confidence scores, and triages problematic entries into `needs_review` or `unparseable` queues.
+This project is an address parsing system designed to parse unstructured Indian delivery addresses into validated structural components (`house`, `street`, `locality`, `city`, `state`, `pincode`), assigns confidence scores, and triages problematic entries into `needs_review` or `unparseable` queues.
 
 ---
 
