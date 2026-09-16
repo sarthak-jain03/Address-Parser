@@ -110,7 +110,6 @@ async function parseAddressesBatch(rawAddresses) {
       const result = await parseAddress(addr);
       results.push(result);
       if (i < rawAddresses.length - 1) {
-        // Add 800ms delay between requests to avoid rate limits
         await new Promise(resolve => setTimeout(resolve, 800));
       }
     }

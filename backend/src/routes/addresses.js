@@ -3,7 +3,6 @@ const router = express.Router();
 const Address = require('../models/Address');
 const { parseAddress, parseAddressesBatch } = require('../services/claudeParser');
 
-// 1. Parse a single address
 router.post('/parse', async (req, res) => {
   try {
     const { raw_address } = req.body;
@@ -19,7 +18,6 @@ router.post('/parse', async (req, res) => {
   }
 });
 
-// 2. Parse multiple addresses in bulk
 router.post('/parse-bulk', async (req, res) => {
   try {
     const { addresses } = req.body;
@@ -31,11 +29,10 @@ router.post('/parse-bulk', async (req, res) => {
     const savedAddresses = await Address.insertMany(parsedResults);
     res.status(201).json({ success: true, count: savedAddresses.length, data: savedAddresses });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to parse batch addresses', details: err.message });
+    res.status(500).json({ error: 'Failed to parse addresses', details: err.message });
   }
 });
 
-// 3. Get dashboard statistics
 router.get('/stats', async (req, res) => {
   try {
     const total = await Address.countDocuments();
@@ -53,7 +50,6 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// 4. Get all addresses (with search, filter, and pagination)
 router.get('/', async (req, res) => {
   try {
     const { status, search } = req.query;
@@ -87,7 +83,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 5. Get address by ID
 router.get('/:id', async (req, res) => {
   try {
     const address = await Address.findById(req.params.id);
@@ -98,7 +93,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 6. Update address by ID
 router.put('/:id', async (req, res) => {
   try {
     const updatedAddress = await Address.findByIdAndUpdate(
@@ -113,7 +107,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// 7. Delete address by ID
 router.delete('/:id', async (req, res) => {
   try {
     const deletedAddress = await Address.findByIdAndDelete(req.params.id);

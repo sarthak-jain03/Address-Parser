@@ -7,19 +7,22 @@ const addressRoutes = require('./routes/addresses');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middlewares
-app.use(cors());
+const corsOptions = {
+  origin: process.env.FRONTEND_URL
+    ? [process.env.FRONTEND_URL, 'http://localhost:5173']
+    : '*',
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
-// API Routes
 app.use('/api/addresses', addressRoutes);
 
-// Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Start Database & Server
 async function startServer() {
   await connectDB();
   app.listen(PORT, () => {
